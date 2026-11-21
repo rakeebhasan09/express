@@ -6,22 +6,23 @@ import express, {
 import { userRoutes } from "./modules/users/user.route.js";
 import { profileRoutes } from "./modules/profile/profile.route.js";
 import { authRoutes } from "./modules/auth/auth.route.js";
-import fs from "fs";
+import logger from "./middleware/logger.js";
+import globalErrorHanderl from "./middleware/globalErrorHandler";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+
 const app: Application = express();
 
+const corsOptions = {
+    origin: ["http://localhost:300"],
+    optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.text());
 app.use(express.urlencoded({ extended: true }));
-
-app.use((req, res, next) => {
-    // console.log("Method -> URL -> Time:", req.method, req.url, Date.now());
-    const log = `\n Method : ${req.method} | URL : ${req.url} | Time: ${Date.now()}\n`;
-
-    fs.appendFile("logger.txt", log, (err) => {
-        console.log(err);
-    });
-    next();
-});
+app.use(cookieParser());
+app.use(logger);
 
 // User Router
 app.use("/api/v1/users", userRoutes);
@@ -39,5 +40,7 @@ app.get("/", (req: Request, res: Response) => {
         author: "MD Rakeeb Hasan",
     });
 });
+
+app.use(globalErrorHanderl);
 
 export default app;
